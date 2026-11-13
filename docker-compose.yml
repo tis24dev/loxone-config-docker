@@ -1,4 +1,3 @@
-version: '3.8'
 services:
   loxone-config:
     image: "local/loxone-config:latest"
@@ -7,15 +6,16 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "5800:5800"
+      # Only reachable from this machine. To reach it from other devices on
+      # your network, change to "5800:5800" (VNC_PASSWORD then matters even more).
+      - "127.0.0.1:5800:5800"
     environment:
+      # Required: set it in a .env file next to this file or in your shell.
+      - VNC_PASSWORD=${VNC_PASSWORD:?Set VNC_PASSWORD, e.g. in a .env file}
       - USER_ID=1000
       - GROUP_ID=1000
       - DISPLAY_WIDTH=1920
       - DISPLAY_HEIGHT=1080
-      - HOME=/config/
-      - WINEPREFIX=/config/wine
-      - WINEARCH=win32
       - XLANG=de
     volumes:
       - "./config:/config:rw"

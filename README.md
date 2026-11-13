@@ -1,6 +1,8 @@
-# lian/docker-loxone-config
+# tis24dev/docker-loxone-config
 
 Docker container for [Loxone Config](https://www.loxone.com/dede/produkte/loxone-config/)
+
+Fork of [lian/docker-loxone-config](https://github.com/lian/docker-loxone-config), updated for **Loxone Config 17+**, which is 64-bit only: the image now runs Debian 13 (amd64) with a 64-bit Wine prefix instead of Alpine/i386 with 32-bit Wine.
 
 The windows GUI of the Loxone Config application is run through [Wine](https://en.wikipedia.org/wiki/Wine_(software)) and accessed on a modern web browser (no installation or configuration needed on client side) or via any VNC client.
 
@@ -19,33 +21,44 @@ Make sure to adjust according to your needs.  Note that only mandatory network
 ports are part of the example.
 
 ```yaml
-version: '3.8'
 services:
   loxone-config:
-    image: "ghcr.io/lian/docker-loxone-config:main"
+    image: "ghcr.io/tis24dev/docker-loxone-config:main"
     container_name: loxone-config
     ports:
-      - "5800:5800"
+      - "127.0.0.1:5800:5800"
     environment:
-      - VNC_PASSWORD=test
+      - VNC_PASSWORD=${VNC_PASSWORD:?Set VNC_PASSWORD, e.g. in a .env file}
       - USER_ID=1000
       - GROUP_ID=1000
       - DISPLAY_WIDTH=1920
       - DISPLAY_HEIGHT=1080
-      - HOME=/config/
-      - WINEPREFIX=/config/wine
       - XLANG=de
     volumes:
       - "./config:/config:rw"
+      - "./config/Loxone:/config/wine/drive_c/users/app/Documents/Loxone:rw"
 ```
 
-**NOTE**: On first launch, the required fonts, libraries and Loxone Config are installed into `/config/wine`. Further launches skip this step. To start clean again, delete `/config/wine`.
+**NOTE**: On first launch the container looks up the latest Loxone Config release in Loxone's update feed (`https://update.loxone.com/updatecheck.xml`), downloads it (about 670 MB), checks its crc32 and installs it unattended into `/config/wine`. Further launches skip this step. To start clean again, delete `/config/wine`. If the download does not work, put `LoxoneConfigSetup.exe` into `./config/` yourself and restart.
+
+**NOTE**: The GUI is bound to `127.0.0.1` and needs `VNC_PASSWORD`. Only the first 8 characters of the password are used (VNC protocol limit). To reach it from other devices on your network, change the port to `5800:5800` and consider `SECURE_CONNECTION=1`.
+
+### Updating Loxone Config
+
+The image does not contain Loxone Config, so a new image does not update it. To install the latest release, stop the container, delete `./config/wine` and `./config/LoxoneConfigSetup.exe`, and start it again. Your projects in `./config/Loxone` are kept.
+
+### Upgrading from the old 32-bit image
+
+A `./config/wine` folder created by the old image (Loxone Config 16 and older) is a 32-bit Wine prefix and cannot run Loxone Config 17+. The container detects it and shows a message. Delete `./config/wine` and `./config/LoxoneConfigSetup.exe` and start again; `./config/Loxone` is kept.
 
 Launch the Loxone Config docker container with the following commands:
 
 ```shell
 # create empty config directory
 mkdir -p config
+
+# set the VNC password (max 8 characters are used)
+echo 'VNC_PASSWORD=changeme' > .env
 
 # ensure USER_ID and GROUP_ID from docker-compose.yml are correct
 id
@@ -54,7 +67,7 @@ id
 docker compose up
 ```
 
-Browse to `http://your-host-ip:5800` to access the Loxone Config GUI.
+Browse to `http://127.0.0.1:5800` to access the Loxone Config GUI.
 
 ### Data Paths
 
@@ -96,7 +109,7 @@ container cannot be changed, but you are free to use any port on the host side.
 | 5800 | Mandatory | Port used to access the application's GUI via the web interface. |
 | 5900 | Optional | Port used to access the application's GUI via the VNC protocol.  Optional if no VNC client is used. |
 
-**NOTE**: For additional security you should bind to localhost only to prevent other devices in your network from accessing the Loxone Config. `127.0.0.1:5800:5800` instead of `5800:5800` inside `docker-compose.yml`.
+**NOTE**: The example binds to localhost only (`127.0.0.1:5800:5800`), so other devices in your network cannot reach Loxone Config. Use `5800:5800` only together with a `VNC_PASSWORD`.
 
 ### Keyboard maps
 
@@ -227,10 +240,11 @@ docker exec -it loxone-config bash
 
 ## Getting Help
 
-Having troubles with the container or have questions?  Please [create a new issue](https://github.com/lian/docker-loxone-config/issues).
+Having troubles with the container or have questions?  Please [create a new issue](https://github.com/tis24dev/docker-loxone-config/issues).
 
 ## Thanks
 
 * [t_heinrich](https://www.loxforum.com/member/1843-t_heinrich) for bug reports
 * [timboettiger](https://github.com/timboettiger) for [keyboard maps](#keyboard-maps)
-
+* [lian](https://github.com/lian) for the original image
+* [rubenvanwanzeele](https://github.com/rubenvanwanzeele), [PaulSchwanitz](https://github.com/PaulSchwanitz) and [JonasReuter](https://github.com/JonasReuter) for the 64-bit Wine work for Loxone Config 17 this fork is based on
