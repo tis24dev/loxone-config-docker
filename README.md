@@ -1,8 +1,8 @@
-# tis24dev/docker-loxone-config
+# tis24dev/loxone-config-docker
 
 Docker container for [Loxone Config](https://www.loxone.com/dede/produkte/loxone-config/)
 
-Fork of [lian/docker-loxone-config](https://github.com/lian/docker-loxone-config), updated for **Loxone Config 17+**, which is 64-bit only: the image now runs Debian 13 (amd64) with a 64-bit Wine prefix instead of Alpine/i386 with 32-bit Wine.
+Originally based on [lian/docker-loxone-config](https://github.com/lian/docker-loxone-config), updated for **Loxone Config 17+**, which is 64-bit only: the image now runs Debian 13 (amd64) with a 64-bit Wine prefix instead of Alpine/i386 with 32-bit Wine.
 
 The windows GUI of the Loxone Config application is run through [Wine](https://en.wikipedia.org/wiki/Wine_(software)) and accessed on a modern web browser (no installation or configuration needed on client side) or via any VNC client.
 
@@ -23,7 +23,7 @@ ports are part of the example.
 ```yaml
 services:
   loxone-config:
-    image: "ghcr.io/tis24dev/docker-loxone-config:main"
+    image: "ghcr.io/tis24dev/loxone-config-docker:main"
     container_name: loxone-config
     ports:
       - "127.0.0.1:5800:5800"
@@ -240,7 +240,7 @@ docker exec -it loxone-config bash
 
 ## Getting Help
 
-Having troubles with the container or have questions?  Please [create a new issue](https://github.com/tis24dev/docker-loxone-config/issues).
+Having troubles with the container or have questions?  Please [create a new issue](https://github.com/tis24dev/loxone-config-docker/issues).
 
 ## Thanks
 
